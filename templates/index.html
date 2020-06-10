@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.3.1/css/foundation.min.css">
+  <meta charset="utf-8">
+  <title>Search Projects App</title>
+  <script src="https://unpkg.com/vue"></script>
+      <!-- component template -->
+      <script type="text/x-template" id="grid-template">
+        <table>
+          <thead>
+            <tr>
+              <th v-for="key in columns"
+                @click="sortBy(key)"
+                :class="{ active: sortKey == key }">
+                (( key | capitalize ))
+                <span class="arrow" :class="sortOrders[key] > 0 ? 'asc' : 'dsc'">
+                </span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="entry in filteredHeroes">
+              <td v-for="key in columns">
+                ((entry[key]))
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </script>
+</head>
+
+  <body>
+    <div class="container" id="app">
+      <h3 class="text-center">Project Search - Cognitive SEarch API</h3>
+	  <input v-model="message" placeholder="Project Name">
+	  <div><input v-model="project_creator" placeholder="Project Creator">
+	  </div>
+<div id="components-demo">
+  <button type="button" class="btn btn-success" @click="getValue">Save</button>
+</div>
+<form id="search">
+  Search <input name="query" v-model="searchQuery" />
+</form>
+<demo-grid
+  :heroes="gridData"
+  :columns="gridColumns"
+  :filter-key="searchQuery"
+>
+</demo-grid>
+    </div>
+
+    <div id="demo">
+      
+    </div>
+
+    <script src="https://unpkg.com/vue"></script>
+<script src="https://unpkg.com/axios@0.2.1/dist/axios.min.js"></script>
+
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vue-resource/0.9.3/vue-resource.js"></script>
+
+
+	    <script>
+	
+        var url = "http://127.0.0.1:5000/getresult?";
+
+
+
+        Vue.component("demo-grid", {
+          template: "#grid-template",
+          delimiters: ["((","))"],
+          props: {
+            heroes: Array,
+            columns: Array,
+            filterKey: String
+          },
+          data: function() {
+            var sortOrders = {};
+            this.columns.forEach(function(key) {
+              sortOrders[key] = 1;
+            });
+            return {
+              sortKey: "",
+              sortOrders: sortOrders
+            };
+          },
+          computed: {
+            filteredHeroes: function() {
+              var sortKey = this.sortKey;
+              var filterKey = this.filterKey && this.filterKey.toLowerCase();
+              var order = this.sortOrders[sortKey] || 1;
+              var heroes = this.heroes;
+              if (filterKey) {
+                heroes = heroes.filter(function(row) {
+                  return Object.keys(row).some(function(key) {
+                    return (
+                      String(row[key])
+                        .toLowerCase()
+                        .indexOf(filterKey) > -1
+                    );
+                  });
+                });
+              }
+              if (sortKey) {
+                heroes = heroes.slice().sort(function(a, b) {
+                  a = a[sortKey];
+                  b = b[sortKey];
+                  return (a === b ? 0 : a > b ? 1 : -1) * order;
+                });
+              }
+              return heroes;
+            }
+          },
+          filters: {
+            capitalize: function(str) {
+              return str.charAt(0).toUpperCase() + str.slice(1);
+            }
+          },
+          methods: {
+            sortBy: function(key) {
+              this.sortKey = key;
+              this.sortOrders[key] = this.sortOrders[key] * -1;
+            }
+          }
+        });
+
+        const vm = new Vue({
+          delimiters: ["((","))"],
+
+
+          el: '#app',
+          data: {
+            searchQuery: "",
+            gridColumns: ["project_type",  "metadata_author"],
+            gridData: [{ "project_type": "", "metadata_author": ""}],
+            message: '',
+            project_creator: ''
+          },
+          methods:{
+            getValue: function(){
+                    axios.get(url+"project_name="+this.message).then(response => {
+                      this.gridData = response.value
+                      alert(JSON.stringify(response.value))
+
+                      // register the grid component
+
+                    });
+                }
+            }
+        
+        });
+      //[{"@search.score":1,"content":"","metadata_author":"Martijn de Kam","metadata_storage_path":"aHR0cHM6Ly90ZXN0bnh0MXB1YmxpYy5ibG9iLmNvcmUud2luZG93cy5uZXQvY29udGFpbmVyMXB1YmxpYy9Gb2xkZXIxL0ZvbGRlcjMvRm9sZGVyNC9BU01MJTIwQVpSQSUyMC0lMjBBenVyZSUyMEFyY2hpdGVjdHVyZS5kb2N40","project_name":"azra","project_type":"ccoe"}]
+    </script>
+  </body>
+</html>
